@@ -99,10 +99,14 @@ export default {
     .navbar {
         flex-direction: column;
         align-items: flex-start;
+        position: relative;
     }
     
     .navbar .menu-icon {
         display: block;
+        position: absolute;
+        right: 1em; /* Right-aligned */
+        top: 1.5em; /* Vertical positioning */
     }
 
     .navbar ul {
