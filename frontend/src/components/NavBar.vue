@@ -70,6 +70,7 @@ export default {
     list-style: none;
     display: flex;
     justify-content: space-around;
+    margin-top: 1em; /* 預設情況下，將選單稍微下移 */
 }
 
 .navbar li {
@@ -97,9 +98,10 @@ export default {
 /* Mobile Styles */
 @media (max-width: 768px) {
     .navbar {
-        flex-direction: row; /* 保持横向排列 */
-        justify-content: space-between; /* 让标题和汉堡按钮分居两侧 */
+        flex-direction: row;
+        justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap; /* 允許元素換行 */
     }
     
     .navbar .menu-icon {
@@ -114,10 +116,12 @@ export default {
         width: 100%;
         background-color: #f3f3f3;
         padding: 1em 0;
+        margin-top: 0; /* 重置 margin 以便下方顯示 */
     }
 
     .navbar ul.show-menu {
         display: flex;
+        margin-top: 1em; /* 顯示時讓選單位於標題下方 */
     }
 
     .navbar li {
