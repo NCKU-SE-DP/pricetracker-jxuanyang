@@ -66,47 +66,18 @@ export default {
     cursor: pointer;
 }
 
-.navbar ul {
-    list-style: none;
-    display: flex;
-    justify-content: space-around;
-}
-
-.navbar li {
-    color: #575B5D;
-    margin: 0 .5em;
-    font-size: 1.2em;
-}
-
-.navbar li:hover {
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.navbar a {
-    text-decoration: none;
-    color: #575B5D;
-}
-
-.title > a {
-    font-size: 1.4em;
-    font-weight: bold;
-    color: #2c3e50 !important;
-}
-
 /* Mobile Styles */
 @media (max-width: 768px) {
     .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        position: relative;
+        flex-direction: row; /* 始终保持横向排列 */
+        align-items: center;
     }
     
     .navbar .menu-icon {
         display: block;
-        position: absolute;
-        right: 1em; /* Right-aligned */
-        top: 1.5em; /* Vertical positioning */
+        font-size: 2em;
+        cursor: pointer;
+        position: static; /* 保持和標題同一排 */
     }
 
     .navbar ul {
