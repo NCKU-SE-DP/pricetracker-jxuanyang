@@ -66,10 +66,39 @@ export default {
     cursor: pointer;
 }
 
+.navbar ul {
+    list-style: none;
+    display: flex;
+    justify-content: space-around;
+}
+
+.navbar li {
+    color: #575B5D;
+    margin: 0 .5em;
+    font-size: 1.2em;
+}
+
+.navbar li:hover {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #575B5D;
+}
+
+.title > a {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #2c3e50 !important;
+}
+
 /* Mobile Styles */
 @media (max-width: 768px) {
     .navbar {
-        flex-direction: row; /* 始终保持横向排列 */
+        flex-direction: row; /* 保持横向排列 */
+        justify-content: space-between; /* 让标题和汉堡按钮分居两侧 */
         align-items: center;
     }
     
@@ -77,7 +106,6 @@ export default {
         display: block;
         font-size: 2em;
         cursor: pointer;
-        position: static; /* 保持和標題同一排 */
     }
 
     .navbar ul {
