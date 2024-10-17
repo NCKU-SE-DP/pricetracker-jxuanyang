@@ -159,27 +159,27 @@ def get_new_info(search_term, is_initial=False):
     firstpage=1
     Id=2
     if is_initial:
-        a = []
+        list_of_respond = []
         for countpages in range(1, 10):
-            p2 = {
+            pagedata = {
                 "page": countpages,
                 "id": f"search:{quote(search_term)}",
                 "channelId": Id,
                 "type": "searchword",
             }
-            response = requests.get("https://udn.com/api/more", params=p2)
+            response = requests.get("https://udn.com/api/more", params=pagedata)
             a.append(response.json()["lists"])
 
-        for l in a:
-            all_news_data.append(l)
+        for newdata in list_of_respond:
+            all_news_data.append(newdata)
     else:
-        p = {
+        pagedata = {
             "page": firstpage,
             "id": f"search:{quote(search_term)}",
             "channelId": Id,
             "type": "searchword",
         }
-        response = requests.get("https://udn.com/api/more", params=p)
+        response = requests.get("https://udn.com/api/more", params=pagedata)
 
         all_news_data = response.json()["lists"]
     return all_news_data
