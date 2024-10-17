@@ -156,13 +156,15 @@ def get_new_info(search_term, is_initial=False):
     """
     all_news_data = []
     # iterate pages to get more news data, not actually get all news data
+    firstpage=1
+    Id=2
     if is_initial:
         a = []
-        for p in range(1, 10):
+        for countpages in range(1, 10):
             p2 = {
-                "page": p,
+                "page": countpages,
                 "id": f"search:{quote(search_term)}",
-                "channelId": 2,
+                "channelId": Id,
                 "type": "searchword",
             }
             response = requests.get("https://udn.com/api/more", params=p2)
@@ -172,9 +174,9 @@ def get_new_info(search_term, is_initial=False):
             all_news_data.append(l)
     else:
         p = {
-            "page": 1,
+            "page": firstpage,
             "id": f"search:{quote(search_term)}",
-            "channelId": 2,
+            "channelId": Id,
             "type": "searchword",
         }
         response = requests.get("https://udn.com/api/more", params=p)
