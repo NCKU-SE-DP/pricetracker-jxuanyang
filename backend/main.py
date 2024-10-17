@@ -168,7 +168,7 @@ def get_new_info(search_term, is_initial=False):
                 "type": "searchword",
             }
             response = requests.get("https://udn.com/api/more", params=pagedata)
-            a.append(response.json()["lists"])
+            list_of_respond.append(response.json()["lists"])
 
         for newdata in list_of_respond:
             all_news_data.append(newdata)
