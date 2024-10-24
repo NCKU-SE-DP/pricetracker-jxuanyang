@@ -156,28 +156,30 @@ def get_new_info(search_term, is_initial=False):
     """
     all_news_data = []
     # iterate pages to get more news data, not actually get all news data
+    firstpage=1
+    Id=2
     if is_initial:
-        a = []
-        for p in range(1, 10):
-            p2 = {
-                "page": p,
+        list_of_respond = []
+        for countpages in range(1, 10):
+            pagedata = {
+                "page": countpages,
                 "id": f"search:{quote(search_term)}",
-                "channelId": 2,
+                "channelId": Id,
                 "type": "searchword",
             }
-            response = requests.get("https://udn.com/api/more", params=p2)
-            a.append(response.json()["lists"])
+            response = requests.get("https://udn.com/api/more", params=pagedata)
+            list_of_respond.append(response.json()["lists"])
 
-        for l in a:
-            all_news_data.append(l)
+        for newdata in list_of_respond:
+            all_news_data.append(newdata)
     else:
-        p = {
-            "page": 1,
+        pagedata = {
+            "page": firstpage,
             "id": f"search:{quote(search_term)}",
-            "channelId": 2,
+            "channelId": Id,
             "type": "searchword",
         }
-        response = requests.get("https://udn.com/api/more", params=p)
+        response = requests.get("https://udn.com/api/more", params=pagedata)
 
         all_news_data = response.json()["lists"]
     return all_news_data
