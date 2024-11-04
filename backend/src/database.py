@@ -1,17 +1,12 @@
 from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from models import Base
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///news_database.db"
+DATABASE_URL = "sqlite:///./news_database.db"
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-Base.metadata.create_all(bind=engine)
-
-def session_opener():
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
+def init_db():
+    Base.metadata.create_all(bind=engine)
