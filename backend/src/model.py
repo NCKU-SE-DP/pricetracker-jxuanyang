@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Table
+from sqlalchemy import Column, ForeignKey, Integer, String, Text, Table
 from sqlalchemy.orm import relationship
-from .database import Base
+from sqlalchemy.ext.declarative import declarative_base
 
-# Association table for user and news articles
+Base = declarative_base()
+
 user_news_association_table = Table(
     "user_news_upvotes",
     Base.metadata,
@@ -16,7 +17,9 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     hashed_password = Column(String(200), nullable=False)
     upvoted_news = relationship(
-        "NewsArticle", secondary=user_news_association_table, back_populates="upvoted_by_users"
+        "NewsArticle",
+        secondary=user_news_association_table,
+        back_populates="upvoted_by_users",
     )
 
 class NewsArticle(Base):
