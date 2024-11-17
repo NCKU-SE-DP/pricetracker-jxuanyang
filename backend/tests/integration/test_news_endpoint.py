@@ -4,10 +4,12 @@ from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
 import json
 from jose import jwt
-from main import app
-from main import Base, NewsArticle, User, session_opener, user_news_association_table
-from main import NewsSumaryRequestSchema, PromptRequest
-from main import pwd_context
+from src.main import app
+from src.main import session_opener
+from src.database import Base
+from src.models import User,user_news_association_table,NewsArticle
+from src.news.schemas import  NewsArticleSchema,PromptRequest,NewsSumaryRequestSchema
+from src.main import pwd_context
 from unittest.mock import Mock
 
 
@@ -127,7 +129,7 @@ def mock_openai(mocker, return_content):
 def test_search_news(mocker):
     mock_openai(mocker, "keywords")
 
-    mock_get_new_info = mocker.patch("main.get_new_info", return_value=[
+    mock_get_new_info = mocker.patch("src.news.services.get_new_info", return_value=[
         {"titleLink": "http://example.com/news1"}
     ])
 

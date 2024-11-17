@@ -17,6 +17,14 @@ from pydantic import BaseModel, Field, AnyHttpUrl
 from sqlalchemy import (Column, ForeignKey, Integer, String, Table, Text, create_engine)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from src.models import Base
+from src.auth.schemas import UserAuthSchema
+from src.auth.services import authenticate_user_token
+from src.auth.utils import  check_user_password_is_correct
+from src.models import User
+
+_id_counter = itertools.count(start=1000000)
+
 
 # Database engine initialization
 engine = create_engine("sqlite:///news_database.db", echo=True)
@@ -68,17 +76,26 @@ def session_opener():
         session.close()
 
 def create_access_token(data, expires_delta=None):
+    """create access token"""
     to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta if expires_delta else datetime.utcnow() + timedelta(minutes=15)
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
+    print(to_encode)
     encoded_jwt = jwt.encode(to_encode, '1892dhianiandowqd0n', algorithm="HS256")
     return encoded_jwt
 
-# User login and registration routes
 @app.post("/api/v1/users/login")
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(session_opener)):
+async def login_for_access_token(
+        form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(session_opener)
+):
+    """login"""
     user = check_user_password_is_correct(db, form_data.username, form_data.password)
-    access_token = create_access_token(data={"sub": str(user.username)}, expires_delta=timedelta(minutes=30))
+    access_token = create_access_token(
+        data={"sub": str(user.username)}, expires_delta=timedelta(minutes=30)
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/api/v1/users/register")
@@ -89,5 +106,9 @@ def create_user(user: UserAuthSchema, db: Session = Depends(session_opener)):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+@app.get("/api/v1/users/me")
+def read_users_me(user=Depends(authenticate_user_token)):
+    return {"username": user.username}
 
 # Additional routes and functions (e.g., reading, searching news) can be placed here
