@@ -1,22 +1,33 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends , FastAPI
 from sqlalchemy.orm import Session
 from src.database import SessionLocal
 from src.models import NewsArticle
-from src.news.services import fetch_news_data , authenticate_user_token
+from src.news.services import fetch_news_data ,toggle_upvote,get_article_upvote_details
+from src.auth.services import authenticate_user_token, session_opener
+from src.database import engine
+import requests
+from src.news.schemas import PromptRequest,NewsSumaryRequestSchema
+from src.news.services import get_new_info
+from openai import OpenAI
+import itertools
+from bs4 import BeautifulSoup
+import json
 
-
+app = FastAPI()
 router = APIRouter()
+_id_counter = itertools.count(start=1000000)
 
-@router.get("/news")
-def get_news(db: Session = Depends(SessionLocal)):
-    news_articles = db.query(NewsArticle).all()
-    return news_articles
+
+# @router.get("/news")
+# def get_news(db: Session = Depends(session_opener)):
+#     news_articles = db.query(NewsArticle).all()
+#     return news_articles
 
 @router.post("/fetch_news")
 def fetch_news():
     return fetch_news_data()
 
-@app.post("/api/v1/news/{id}/upvote")
+@router.post("/news/{artical_id}/upvote")
 def upvote_article(
         artical_id,
         db=Depends(session_opener),
@@ -26,7 +37,7 @@ def upvote_article(
     return {"message": message}
 
 
-@app.get("/api/v1/news/news")
+@router.get("/news/news")
 def read_news(db=Depends(session_opener)):
     """
     read new
@@ -43,8 +54,8 @@ def read_news(db=Depends(session_opener)):
         )
     return result
 
-@app.get(
-    "/api/v1/news/user_news"
+@router.get(
+    "/news/user_news"
 )
 def read_user_news(
         db=Depends(session_opener),
@@ -71,7 +82,7 @@ def read_user_news(
     return result
 
 
-@app.post("/api/v1/news/search_news")
+@router.post("/news/search_news")
 async def search_news(request: PromptRequest):
     prompt = request.prompt
     news_list = []
@@ -118,7 +129,7 @@ async def search_news(request: PromptRequest):
             print(e)
     return sorted(news_list, key=lambda x: x["time"], reverse=True)
 
-@app.post("/api/v1/news/news_summary")
+@router.post("/news/news_summary")
 async def news_summary(
         payload: NewsSumaryRequestSchema, u=Depends(authenticate_user_token)
 ):

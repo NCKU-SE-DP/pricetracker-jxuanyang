@@ -5,8 +5,8 @@ from openai import OpenAI
 from urllib.parse import quote
 import requests
 from bs4 import BeautifulSoup
-from .models import user_news_table, NewsArticle
-from .config import GPT_MODEL, OPENAI_API_KEY, PAGES_INFO_URL
+from ..models import user_news_association_table, NewsArticle
+from ..config import OPENAI_API_KEY, PAGES_INFO_URL
 
 
 # def generate_summary(content):

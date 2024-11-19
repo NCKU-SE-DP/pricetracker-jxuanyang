@@ -12,7 +12,6 @@ from src.news.schemas import  NewsArticleSchema,PromptRequest,NewsSumaryRequestS
 from src.main import pwd_context
 from unittest.mock import Mock
 
-
 SECRET_KEY = "1892dhianiandowqd0n"
 ALGORITHM = "HS256"
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -111,7 +110,8 @@ def test_read_user_news(test_user, test_token, test_articles):
     assert json_response[1]["is_upvoted"] is False
 
 def mock_openai(mocker, return_content):
-    mock_openai_client = mocker.patch('main.OpenAI')
+    mock_openai_client_1 = mocker.patch('src.news.router.OpenAI')
+    mock_openai_client_2 = mocker.patch('src.news.services.OpenAI')
 
     mock_message = Mock()
     mock_message.content = return_content
@@ -122,18 +122,19 @@ def mock_openai(mocker, return_content):
     mock_completion = Mock()
     mock_completion.choices = [mock_choice]
 
-    mock_openai_client.return_value.chat.completions.create.return_value = mock_completion
+    mock_openai_client_1.return_value.chat.completions.create.return_value = mock_completion
+    mock_openai_client_2.return_value.chat.completions.create.return_value = mock_completion
 
-    return mock_openai_client
+    return mock_openai_client_1, mock_openai_client_2
 
 def test_search_news(mocker):
     mock_openai(mocker, "keywords")
 
-    mock_get_new_info = mocker.patch("src.news.services.get_new_info", return_value=[
+    mock_get_new_info = mocker.patch("src.news.router.get_new_info", return_value=[
         {"titleLink": "http://example.com/news1"}
     ])
 
-    mock_get = mocker.patch("main.requests.get", return_value=mocker.Mock(
+    mock_get = mocker.patch("src.news.services.requests.get", return_value=mocker.Mock(
         text="""
         <html>
         <h1 class="article-content__title">Test Title</h1>

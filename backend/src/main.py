@@ -2,7 +2,6 @@ import json
 import sentry_sdk
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi.middleware.cors import CORSMiddleware
-import itertools
 from sqlalchemy import delete, insert, select
 from sqlalchemy.orm import Session, sessionmaker
 from typing import List, Optional
@@ -19,18 +18,19 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from src.models import Base
 from src.auth.schemas import UserAuthSchema
-from src.auth.services import authenticate_user_token
+from src.auth.services import authenticate_user_token, session_opener
 from src.auth.utils import  check_user_password_is_correct
-from src.models import User
+from src.models import User,NewsArticle
+from src.news.services import get_new
+from src.news.router import router as news_router
+from src.prices.router import router as prices_router
+from src.users.router import router as users_router
+from src.database import SessionLocal, engine, init_db
 
-_id_counter = itertools.count(start=1000000)
 
 
 # Database engine initialization
-engine = create_engine("sqlite:///news_database.db", echo=True)
-Base.metadata.create_all(engine)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+init_db()
 # Sentry SDK initialization for error tracking
 sentry_sdk.init(
     dsn="https://4001ffe917ccb261aa0e0c34026dc343@o4505702629834752.ingest.us.sentry.io/4507694792704000",
@@ -39,6 +39,9 @@ sentry_sdk.init(
 )
 
 app = FastAPI()
+app.include_router(news_router, prefix="/api/v1")
+app.include_router(prices_router, prefix="/api/v1")
+app.include_router(users_router, prefix="/api/v1")
 bgs = BackgroundScheduler()
 
 # Add CORS middleware for front-end communication
@@ -68,13 +71,6 @@ def shutdown_scheduler():
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
 
-def session_opener():
-    session = Session(bind=engine)
-    try:
-        yield session
-    finally:
-        session.close()
-
 def create_access_token(data, expires_delta=None):
     """create access token"""
     to_encode = data.copy()
@@ -97,15 +93,6 @@ async def login_for_access_token(
         data={"sub": str(user.username)}, expires_delta=timedelta(minutes=30)
     )
     return {"access_token": access_token, "token_type": "bearer"}
-
-@app.post("/api/v1/users/register")
-def create_user(user: UserAuthSchema, db: Session = Depends(session_opener)):
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User(username=user.username, hashed_password=hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
 
 @app.get("/api/v1/users/me")
 def read_users_me(user=Depends(authenticate_user_token)):
