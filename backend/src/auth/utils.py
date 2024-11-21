@@ -2,8 +2,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import jwt
 from datetime import datetime, timedelta
-
-from .models import User  # 假設 User 模型在 auth.models 中
+from src.models import User  # 假設 User 模型在 src.models 中
 
 # 設定密碼加密方式
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -13,18 +12,18 @@ ALGORITHM = "HS256"
 
 def verify_password(plain_password, hashed_password):
     """驗證密碼是否正確"""
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)  # 使用 pwd_context.verify
 
 def hash_password(password):
     """將密碼加密"""
     return pwd_context.hash(password)
 
-def check_user_password_is_correct(db: Session, username: str, password: str):
-    """驗證使用者的帳號密碼"""
-    user = db.query(User).filter(User.username == username).first()
-    if user and verify_password(password, user.hashed_password):
-        return user
-    return None
+def check_user_password_is_correct(db: Session, n: str, pwd: str):
+    """檢查用戶名和密碼是否正確"""
+    OuO = db.query(User).filter(User.username == n).first()
+    if not OuO or not verify_password(pwd, OuO.hashed_password):  # 使用修正後的 verify_password
+        return False
+    return OuO
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     """創建存取權杖"""
