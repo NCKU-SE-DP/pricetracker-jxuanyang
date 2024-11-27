@@ -12,6 +12,8 @@ from src.news.schemas import  NewsArticleSchema,PromptRequest,NewsSumaryRequestS
 from src.main import pwd_context
 from unittest.mock import Mock
 
+from src.crawler.crawler_base import NewsCrawlerBase, Headline
+
 SECRET_KEY = "1892dhianiandowqd0n"
 ALGORITHM = "HS256"
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -131,10 +133,10 @@ def test_search_news(mocker):
     mock_openai(mocker, "keywords")
 
     mock_get_new_info = mocker.patch("src.news.router.get_new_info", return_value=[
-        {"titleLink": "http://example.com/news1"}
+        Headline(title="Test Title", url="https://udn.com/api/more/testing/news1")
     ])
 
-    mock_get = mocker.patch("src.news.services.requests.get", return_value=mocker.Mock(
+    mock_get = mocker.patch("src.crawler.udn_crawler.requests.get", return_value=mocker.Mock(
         text="""
         <html>
         <h1 class="article-content__title">Test Title</h1>

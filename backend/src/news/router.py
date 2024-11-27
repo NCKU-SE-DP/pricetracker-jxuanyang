@@ -1,49 +1,61 @@
-from fastapi import APIRouter, Depends , FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 from sqlalchemy.orm import Session
 from src.database import SessionLocal
 from src.models import NewsArticle
-from src.news.services import fetch_news_data ,toggle_upvote,get_article_upvote_details
+from src.news.services import toggle_upvote, get_article_upvote_details
 from src.auth.services import authenticate_user_token, session_opener
-from src.database import engine
-import requests
-from src.news.schemas import PromptRequest,NewsSumaryRequestSchema
-from src.news.services import get_new_info
+from src.news.schemas import PromptRequest, NewsSumaryRequestSchema
+from src.news.services import get_new_info,udn_crawler
 from openai import OpenAI
+import requests
 import itertools
 from bs4 import BeautifulSoup
 import json
+from ..crawler.udn_crawler import UDNCrawler  # IMPORTING CRAWLER CLASS
 
 app = FastAPI()
 router = APIRouter()
 _id_counter = itertools.count(start=1000000)
 
-
-# @router.get("/news")
-# def get_news(db: Session = Depends(session_opener)):
-#     news_articles = db.query(NewsArticle).all()
-#     return news_articles
+crawler = UDNCrawler(timeout=10)  # INSTANTIATING THE CRAWLER
 
 @router.post("/fetch_news")
 def fetch_news():
-    return fetch_news_data()
+    """
+    Fetch news using the UDNCrawler class.  # UPDATED TO USE CRAWLER
+    """
+    # Fetch news headlines for a particular search term, e.g., "technology"
+    headlines = crawler.startup("technology")  # CHANGED TO CRAWLER USAGE
+    
+    news_list = []
+    for headline in headlines:
+        # For each headline, parse the detailed news content
+        news = crawler.parse(headline.url)  # CHANGED TO CRAWLER PARSE
+        news_list.append({
+            "title": news.title,
+            "time": news.time,
+            "content": news.content,
+            "url": news.url,
+            "id": next(_id_counter)
+        })
+    
+    return sorted(news_list, key=lambda x: x["time"], reverse=True)
 
-@router.post("/news/{artical_id}/upvote")
+
+@router.post("/news/{article_id}/upvote")
 def upvote_article(
-        artical_id,
+        article_id,
         db=Depends(session_opener),
         u=Depends(authenticate_user_token),
 ):
-    message = toggle_upvote(artical_id, u.id, db)
+    message = toggle_upvote(article_id, u.id, db)
     return {"message": message}
 
 
 @router.get("/news/news")
 def read_news(db=Depends(session_opener)):
     """
-    read new
-
-    :param db:
-    :return:
+    Read news articles from the database.
     """
     news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
     result = []
@@ -54,19 +66,14 @@ def read_news(db=Depends(session_opener)):
         )
     return result
 
-@router.get(
-    "/news/user_news"
-)
+
+@router.get("/news/user_news")
 def read_user_news(
         db=Depends(session_opener),
         u=Depends(authenticate_user_token)
 ):
     """
-    read user new
-
-    :param db:
-    :param u:
-    :return:
+    Read news articles for the authenticated user.
     """
     news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
     result = []
@@ -98,36 +105,25 @@ async def search_news(request: PromptRequest):
         model="gpt-3.5-turbo",
         messages=m,
     )
-    keywords = completion.choices[0].message.content
-    # should change into simple factory pattern
-    news_items = get_new_info(keywords, is_initial=False)
-    for news in news_items:
-        try:
-            response = requests.get(news["titleLink"])
-            soup = BeautifulSoup(response.text, "html.parser")
-            # 標題
-            title = soup.find("h1", class_="article-content__title").text
-            time = soup.find("time", class_="article-content__time").text
-            # 定位到包含文章内容的 <section>
-            content_section = soup.find("section", class_="article-content__editor")
+    keywords = completion.choices[0].message.content.strip()
 
-            paragraphs = [
-                p.text
-                for p in content_section.find_all("p")
-                if p.text.strip() != "" and "▪" not in p.text
-            ]
-            detailed_news = {
-                "url": news["titleLink"],
-                "title": title,
-                "time": time,
-                "content": paragraphs,
-            }
-            detailed_news["content"] = " ".join(detailed_news["content"])
-            detailed_news["id"] = next(_id_counter)
-            news_list.append(detailed_news)
+    # Use the crawler to fetch news based on the keywords  # UPDATED TO USE CRAWLER
+    news_items = crawler.startup(keywords)  # CHANGED TO CRAWLER USAGE
+
+    for news_item in news_items:
+        try:
+            detailed_news = crawler.parse(news_item.url)  # CHANGED TO CRAWLER PARSE
+            detailed_news.id = next(_id_counter)
+            news_list.append({
+                "url": detailed_news.url,
+                "title": detailed_news.title,
+                "time": detailed_news.time,
+                "content": detailed_news.content,
+            })
         except Exception as e:
             print(e)
-    return sorted(news_list, key=lambda x: x["time"], reverse=True)
+    return sorted(news_list, key=lambda x: x.time, reverse=True)
+
 
 @router.post("/news/news_summary")
 async def news_summary(
