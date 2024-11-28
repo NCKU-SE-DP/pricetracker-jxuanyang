@@ -1,7 +1,6 @@
 from requests import Response, get
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
-
 from .crawler_base import NewsCrawlerBase, Headline, News, NewsWithSummary
 from ..models import NewsArticle
 

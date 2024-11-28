@@ -7,7 +7,6 @@ from src.auth.services import authenticate_user_token, session_opener
 from src.news.schemas import PromptRequest, NewsSumaryRequestSchema
 from src.news.services import get_new_info,udn_crawler
 from openai import OpenAI
-import requests
 import itertools
 from bs4 import BeautifulSoup
 import json
@@ -106,24 +105,16 @@ async def search_news(request: PromptRequest):
         messages=m,
     )
     keywords = completion.choices[0].message.content.strip()
+    news_items = get_new_info(keywords)  
 
-    # Use the crawler to fetch news based on the keywords  # UPDATED TO USE CRAWLER
-    news_items = crawler.startup(keywords)  # CHANGED TO CRAWLER USAGE
-
-    for news_item in news_items:
+    for news in news_items:
         try:
-            detailed_news = crawler.parse(news_item.url)  # CHANGED TO CRAWLER PARSE
-            detailed_news.id = next(_id_counter)
-            news_list.append({
-                "url": detailed_news.url,
-                "title": detailed_news.title,
-                "time": detailed_news.time,
-                "content": detailed_news.content,
-            })
+            detailed_news = udn_crawler.validate_and_parse(news.url) 
+            detailed_news.id = next(_id_counter) 
+            news_list.append(detailed_news)
         except Exception as e:
             print(e)
     return sorted(news_list, key=lambda x: x.time, reverse=True)
-
 
 @router.post("/news/news_summary")
 async def news_summary(

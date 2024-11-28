@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch
 from pydantic import AnyHttpUrl
-from backend.src.crawler import NewsCrawlerBase, News, Headline
-from backend.src import DomainMismatchException
+from backend.src.crawler.crawler_base import NewsCrawlerBase, News, Headline
+from backend.src.crawler.exceptions import DomainMismatchException
 
 
 class MockNewsCrawler(NewsCrawlerBase):

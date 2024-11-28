@@ -6,6 +6,7 @@ from backend.src import UDNCrawler, NewsWithSummary
 from backend.src import DomainMismatchException
 
 
+
 class TestUDNCrawler(unittest.TestCase):
 
     def setUp(self):

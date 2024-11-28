@@ -3,12 +3,17 @@ from pydantic import AnyHttpUrl
 from tldextract import tldextract
 from sqlalchemy.orm import Session
 
-from .expections import DomainMismatchException
+from .exceptions import DomainMismatchException
 
 from pydantic import BaseModel, Field, AnyHttpUrl
 
 
 class Headline(BaseModel):
+    id: str = Field(
+        default="",
+        example="Title of the article",
+        description="The title of the article"
+    )    
     title: str = Field(
         default=...,
         example="Title of the article",

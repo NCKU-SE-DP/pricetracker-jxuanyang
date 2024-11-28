@@ -21,7 +21,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(bind=engine)
 
-
 def override_session_opener():
     try:
         db = TestingSessionLocal()
@@ -136,7 +135,7 @@ def test_search_news(mocker):
         Headline(title="Test Title", url="https://udn.com/api/more/testing/news1")
     ])
 
-    mock_get = mocker.patch("src.crawler.udn_crawler.requests.get", return_value=mocker.Mock(
+    mock_get = mocker.patch("src.crawler.udn_crawler.get", return_value=mocker.Mock(
         text="""
         <html>
         <h1 class="article-content__title">Test Title</h1>
