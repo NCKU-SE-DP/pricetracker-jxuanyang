@@ -49,6 +49,8 @@ class UDNCrawler(NewsCrawlerBase):
             "page": page,
             "search_term": search_term,
             "channelId": self.CHANNEL_ID,
+            "type": "searchword",
+            "id": f"search:{search_term}",
         }
 
     @staticmethod
