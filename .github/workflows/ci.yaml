@@ -13,7 +13,7 @@ on:
 
 jobs:
   test:
-    runs-on: [F74136801_1]
+    runs-on: [F74136801]
 
     steps:
       - name: Checkout code
