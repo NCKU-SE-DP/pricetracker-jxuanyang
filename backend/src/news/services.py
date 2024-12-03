@@ -7,7 +7,10 @@ import requests
 from bs4 import BeautifulSoup
 from ..models import user_news_association_table, NewsArticle
 from ..config import OPENAI_API_KEY, PAGES_INFO_URL
+from ..crawler.crawler_base import NewsWithSummary
+from ..crawler.udn_crawler import UDNCrawler
 
+udn_crawler = UDNCrawler()
 
 # def generate_summary(content):
 #     m = [
@@ -39,26 +42,16 @@ from ..config import OPENAI_API_KEY, PAGES_INFO_URL
 #         messages=m,
 #     )
 #     return completion.choices[0].message.content
-
+session = Session()
 def add_new(news_data):
     """
     add new to db
     :param news_data: news info
     :return:
     """
-    session = Session()
-    session.add(NewsArticle(
-        url=news_data["url"],
-        title=news_data["title"],
-        time=news_data["time"],
-        content=" ".join(news_data["content"]),  # 將內容list轉換為字串
-        summary=news_data["summary"],
-        reason=news_data["reason"],
-    ))
-    session.commit()
-    session.close()
+    udn_crawler.save(news_data, session)
 
-def get_new_info(search_term, is_initial=False):
+def get_new_info(search_term: str, is_initial=False):
     """
     get new
 
@@ -66,33 +59,7 @@ def get_new_info(search_term, is_initial=False):
     :param is_initial:
     :return:
     """
-    all_news_data = []
-    # iterate pages to get more news data, not actually get all news data
-    if is_initial:
-        a = []
-        for p in range(1, 10):
-            p2 = {
-                "page": p,
-                "id": f"search:{quote(search_term)}",
-                "channelId": 2,
-                "type": "searchword",
-            }
-            response = requests.get("https://udn.com/api/more", params=p2)
-            a.append(response.json()["lists"])
-
-        for l in a:
-            all_news_data.append(l)
-    else:
-        p = {
-            "page": 1,
-            "id": f"search:{quote(search_term)}",
-            "channelId": 2,
-            "type": "searchword",
-        }
-        response = requests.get("https://udn.com/api/more", params=p)
-
-        all_news_data = response.json()["lists"]
-    return all_news_data
+    return udn_crawler.get_headline(search_term, (1, 10) if is_initial else 1)
 
 def get_article_upvote_details(article_id, uid, db):
     cnt = (
@@ -143,7 +110,7 @@ def get_new(is_initial=False):
     """
     news_data = get_new_info("價格", is_initial=is_initial)
     for news in news_data:
-        title = news["title"]
+        title = news.title
         m = [
             {
                 "role": "system",
@@ -170,12 +137,7 @@ def get_new(is_initial=False):
                 for p in content_section.find_all("p")
                 if p.text.strip() != "" and "▪" not in p.text
             ]
-            detailed_news =  {
-                "url": news["titleLink"],
-                "title": title,
-                "time": time,
-                "content": paragraphs,
-            }
+            detailed_news =  udn_crawler.validate_and_parse(news.url)
             m = [
                 {
                     "role": "system",
@@ -190,8 +152,14 @@ def get_new(is_initial=False):
             )
             result = completion.choices[0].message.content
             result = json.loads(result)
-            detailed_news["summary"] = result["影響"]
-            detailed_news["reason"] = result["原因"]
+            detailed_news = NewsWithSummary(
+                url=detailed_news.url,
+                title=detailed_news.title,
+                time=detailed_news.time,
+                content=detailed_news.content,
+                summary=result["影響"],
+                reason=result["原因"],
+            )
             add_new(detailed_news)
 
 
