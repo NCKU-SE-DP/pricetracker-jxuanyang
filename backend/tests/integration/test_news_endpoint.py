@@ -154,7 +154,7 @@ def test_news_summary(mocker, test_token):
     mock_openai(mocker, openai_response)
 
     request_body = NewsSumaryRequestSchema(content="Test news content")
-    response = client.post("/api/v1/news/news_summary", json=request_body.dict(), headers=headers)
+    response = client.post("/api/v1/news/news_summary", json=request_body.__dict__(), headers=headers)
 
     assert response.status_code == 200
     json_response = response.json()
