@@ -114,7 +114,6 @@ async def news_summary(
     response = {}
     result = llm_client.generate_summary(payload.content)
     if result:
-        result = json.loads(result)
-        response["summary"] = result["影響"]
-        response["reason"] = result["原因"]
+        response["summary"] = result.get("影響")
+        response["reason"] = result.get("原因")
     return response
