@@ -5,7 +5,7 @@ from ..database import SessionLocal
 from ..models import NewsArticle
 
 from ..auth.services import authenticate_user_token, session_opener
-from ..news.services import toggle_upvote, get_article_upvote_details
+from ..news.services import toggle_upvote, get_article_upvote_details,anthropic_client
 from ..news.schemas import PromptRequest, NewsSummaryCustomModelRequestSchema
 from ..news.services import get_new_info,openai_client,udn_crawler,openai_client
 
@@ -110,4 +110,24 @@ async def news_summary(
     if result:
         response["summary"] = result.get("影響")
         response["reason"] = result.get("原因")
+    return response
+
+@router.post("/news_summary_custom_model")
+async def news_summary_with_custom_model(
+        payload: NewsSummaryCustomModelRequestSchema, user=Depends(authenticate_user_token)
+):
+    response = {}
+
+    if not payload.llm_model:
+        return {"message": "Model is required."}
+    elif payload.llm_model.lower() == "openai":
+        result = openai_client.generate_summary(payload.content)
+    elif payload.llm_model.lower() == "anthropic" or payload.llm_model.lower() == "claude":
+        result = anthropic_client.generate_summary(payload.content)
+    else:
+        return {"message": "Invalid model."}
+
+    if result:
+        response["summary"] = result["影響"]
+        response["reason"] = result["原因"]
     return response
