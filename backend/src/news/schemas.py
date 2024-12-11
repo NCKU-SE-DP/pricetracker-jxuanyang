@@ -13,3 +13,7 @@ class NewsSumaryRequestSchema(BaseModel):
 
 class PromptRequest(BaseModel):
     prompt: str
+
+class NewsSummaryCustomModelRequestSchema(BaseModel):
+    content: str
+    llm_model: str
