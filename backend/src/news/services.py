@@ -14,8 +14,8 @@ from ..llm_client.base import RelevanceEvaluation
 from ..llm_client.anthropic_client import AnthropicClient
 
 udn_crawler = UDNCrawler()
-openai_client = OpenAIClient(_api_key=Config.OPENAI_TOKEN)
-anthropic_client = AnthropicClient(api_key=Config.Anthropic.ANTHROPIC_TOKEN)
+openai_client = OpenAIClient(api_key=Config.OPENAI_TOKEN)
+anthropic_client = AnthropicClient(api_key=Config.ANTHROPIC_TOKEN)
 # def generate_summary(content):
 #     m = [
 #         {

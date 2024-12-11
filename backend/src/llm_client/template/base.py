@@ -11,8 +11,7 @@ class LLMClientTemplate(LLMClientBase, ABC):
         self.api_key = api_key
         self.model: str = ...
         self._initialize_client()
-
-    #initialize client function should be abstract
+        
     @abstractmethod
     def _initialize_client(self):
         ...
