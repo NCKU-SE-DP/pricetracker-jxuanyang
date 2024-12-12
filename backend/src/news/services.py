@@ -9,9 +9,12 @@ from ..models import user_news_association_table, NewsArticle
 from ..config import OPENAI_API_KEY, PAGES_INFO_URL
 from ..crawler.crawler_base import NewsWithSummary
 from ..crawler.udn_crawler import UDNCrawler
+from ..config import Config
+from ..llm_client.llm_client import LLMClient
+from ..llm_client.base import RelevanceEvaluation
 
 udn_crawler = UDNCrawler()
-
+llm_client = LLMClient(_api_key=Config.OPENAI_TOKEN)
 # def generate_summary(content):
 #     m = [
 #         {
@@ -111,19 +114,8 @@ def get_new(is_initial=False):
     news_data = get_new_info("價格", is_initial=is_initial)
     for news in news_data:
         title = news.title
-        m = [
-            {
-                "role": "system",
-                "content": "你是一個關聯度評估機器人，請評估新聞標題是否與「民生用品的價格變化」相關，並給予'high'、'medium'、'low'評價。(僅需回答'high'、'medium'、'low'三個詞之一)",
-            },
-            {"role": "user", "content": f"{title}"},
-        ]
-        ai = OpenAI(api_key="xxx").chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=m,
-        )
-        relevance = ai.choices[0].message.content
-        if relevance == "high":
+        relevance = llm_client.evaluate_relevance(title, "民生用品的價格變化")
+        if relevance == RelevanceEvaluation.high:
             response = requests.get(news["titleLink"])
             soup = BeautifulSoup(response.text, "html.parser")
             # 標題
@@ -138,20 +130,7 @@ def get_new(is_initial=False):
                 if p.text.strip() != "" and "▪" not in p.text
             ]
             detailed_news =  udn_crawler.validate_and_parse(news.url)
-            m = [
-                {
-                    "role": "system",
-                    "content": "你是一個新聞摘要生成機器人，請統整新聞中提及的影響及主要原因 (影響、原因各50個字，請以json格式回答 {'影響': '...', '原因': '...'})",
-                },
-                {"role": "user", "content": " ".join(detailed_news["content"])},
-            ]
-
-            completion = OpenAI(api_key="xxx").chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=m,
-            )
-            result = completion.choices[0].message.content
-            result = json.loads(result)
+            result = llm_client.generate_summary(" ".join(detailed_news["content"]))
             detailed_news = NewsWithSummary(
                 url=detailed_news.url,
                 title=detailed_news.title,
