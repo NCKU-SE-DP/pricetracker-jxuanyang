@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 from .crawler_base import NewsCrawlerBase, Headline, News, NewsWithSummary
 from ..models import NewsArticle
+from src.logger_config import logger
+from sentry_sdk import capture_exception, capture_message
 
 
 class UDNCrawler(NewsCrawlerBase):
@@ -13,38 +15,31 @@ class UDNCrawler(NewsCrawlerBase):
         self.timeout = timeout
 
     def startup(self, search_term: str) -> list[Headline]:
-        """
-        Initializes the application by fetching news headlines for a given search term across multiple pages.
-        This method is typically called at the beginning of the program when there is no data available,
-        hence it fetches headlines from the first 10 pages.
-
-        :param search_term: The term to search for in news headlines.
-        :return: A list of Headline namedtuples containing the title and URL of news articles.
-        """
         return self.get_headline(search_term, page=(1, 10))
 
     def get_headline(self, search_term: str, page: int | tuple[int, int]) -> list[Headline]:
-        """
-        Fetches headlines for a specific page or a range of pages.
-        """
         page_range = range(*page) if isinstance(page, tuple) else [page]
         headlines = []
-        for p in page_range:
-            headlines.extend(self._fetch_news(p, search_term))
+    
+        try:
+            for p in page_range:
+             headlines.extend(self._fetch_news(p, search_term))
+        except Exception as e:
+            # 記錄錯誤並發送到 Sentry
+            logger.error(
+                "Error fetching headlines for search term '%s' and page range '%s': %s", 
+                search_term, page, str(e), exc_info=True
+            )
+            capture_message('Something went wrong while fetching headlines')  # 發送自定義錯誤訊息
+            capture_exception(e)  # 捕捉並發送例外到 Sentry
         return headlines
 
     def _fetch_news(self, page: int, search_term: str) -> list[Headline]:
-        """
-        Fetches news from a given page for a search term.
-        """
         params = self._create_search_params(page, search_term)
         response = self._perform_request(self.news_website_url, params)
         return self._parse_headlines(response)
 
     def _create_search_params(self, page: int, search_term: str) -> dict:
-        """
-        Creates search parameters for the API request.
-        """
         return {
             "page": page,
             "search_term": search_term,
@@ -55,44 +50,54 @@ class UDNCrawler(NewsCrawlerBase):
 
     @staticmethod
     def _perform_request(url: str | None = None, params: dict | None = None) -> Response:
-        """
-        Performs an HTTP GET request using the provided URL and parameters.
-        """
         return get(url, params=params)
 
     @staticmethod
     def _parse_headlines(response: Response) -> list[Headline]:
-        """
-        Parses the JSON response to extract headlines.
-        """
         raw_news_list = response.json()["lists"]
         headlines = [Headline(title=item["title"], url=item["titleLink"]) for item in raw_news_list]
         return headlines
 
     def parse(self, url: str) -> News:
-        """
-        Parses a news article given its URL.
-        """
-        response = self._perform_request(url)
-        soup = BeautifulSoup(response.text, "html.parser")
-        return self._extract_news(soup, url)
+        try:
+            # 發送請求並解析 HTML
+            response = self._perform_request(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            return self._extract_news(soup, url)
+        except Exception as e:
+            # 記錄錯誤並發送到 Sentry
+            logger.error(
+                "Error parsing news from URL '%s': %s", 
+                url, str(e), exc_info=True
+            )
+            capture_message(f'Something went wrong while parsing news from {url}')  # 發送自定義錯誤訊息
+            capture_exception(e)  # 捕捉並發送例外到 Sentry
+        return None  
 
     @staticmethod
     def _extract_news(soup: BeautifulSoup, url: str) -> News:
-        """
-        Extracts the details of a news article from the BeautifulSoup object.
-        """
-        title = soup.find("h1", class_="article-content__title").text
-        time = soup.find("time", class_="article-content__time").text
-        content_section = soup.find("section", class_="article-content__editor")
-        paragraphs = [p.text for p in content_section.find_all("p") if p.text.strip()]
+        try:
+            # 提取標題
+            title = soup.find("h1", class_="article-content__title").text
+            # 提取時間
+            time = soup.find("time", class_="article-content__time").text
+            # 提取內容區塊
+            content_section = soup.find("section", class_="article-content__editor")
+            paragraphs = [p.text for p in content_section.find_all("p") if p.text.strip()]
+            
+            return News(url=url, title=title, time=time, content=" ".join(paragraphs))
         
-        return News(url=url, title=title, time=time, content=" ".join(paragraphs))
+        except Exception as e:
+            # 記錄錯誤並發送到 Sentry
+            logger.error(
+                "Error extracting news from URL '%s': %s", 
+                url, str(e), exc_info=True
+            )
+            capture_message(f'Something went wrong while extracting news from {url}')  # 發送自定義錯誤訊息
+            capture_exception(e)  # 捕捉並發送例外到 Sentry
+            return None  # 返回 None 以防止程序崩潰
 
     def save(self, news: NewsWithSummary, db: Session):
-        """
-        Saves the parsed news article to the database.
-        """
         db.add(NewsArticle(
             url=news.url,
             title=news.title,
@@ -105,8 +110,5 @@ class UDNCrawler(NewsCrawlerBase):
 
     @staticmethod
     def _commit_changes(db: Session):
-        """
-        Commits the current transaction and closes the database session.
-        """
         db.commit()
         db.close()

@@ -10,8 +10,10 @@ from ..news.schemas import PromptRequest, NewsSummaryCustomModelRequestSchema
 from ..news.services import get_new_info,openai_client,udn_crawler,openai_client
 
 import itertools
-import json
 from ..crawler.udn_crawler import UDNCrawler
+
+from src.logger_config import logger
+from sentry_sdk import capture_exception, capture_message
 
 app = FastAPI()
 router = APIRouter()
@@ -20,25 +22,27 @@ crawler = UDNCrawler(timeout=10)
 
 @router.post("/fetch_news")
 def fetch_news():
-    """
-    Fetch news using the UDNCrawler class.  # UPDATED TO USE CRAWLER
-    """
-    # Fetch news headlines for a particular search term, e.g., "technology"
-    headlines = crawler.startup("technology")  # CHANGED TO CRAWLER USAGE
-    
-    news_list = []
-    for headline in headlines:
-        # For each headline, parse the detailed news content
-        news = crawler.parse(headline.url)  # CHANGED TO CRAWLER PARSE
-        news_list.append({
-            "title": news.title,
-            "time": news.time,
-            "content": news.content,
-            "url": news.url,
-            "id": next(_id_counter)
-        })
-    
-    return sorted(news_list, key=lambda x: x["time"], reverse=True)
+    try:
+        headlines = crawler.startup("technology")
+        
+        news_list = []
+        for headline in headlines:
+            news = crawler.parse(headline.url)
+            news_list.append({
+                "title": news.title,
+                "time": news.time,
+                "content": news.content,
+                "url": news.url,
+                "id": next(_id_counter)
+            })
+        
+        return sorted(news_list, key=lambda x: x["time"], reverse=True)
+
+    except Exception as e:
+        logger.error("Error occurred while fetching or processing news: %s", str(e), exc_info=True)
+        capture_message('Something went wrong while fetching or processing news')
+        capture_exception(e)
+        return []
 
 
 @router.post("/news/{article_id}/upvote")
@@ -52,18 +56,22 @@ def upvote_article(
 
 
 @router.get("/news/news")
-def read_news(db=Depends(session_opener)):
-    """
-    Read news articles from the database.
-    """
-    news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
-    result = []
-    for n in news:
-        upvotes, upvoted = get_article_upvote_details(n.id, None, db)
-        result.append(
-            {**n.__dict__, "upvotes": upvotes, "is_upvoted": upvoted}
-        )
-    return result
+def read_news(db: Session = Depends(session_opener)): 
+    try:
+        news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
+        result = []
+        for n in news:
+            upvotes, upvoted = get_article_upvote_details(n.id, None, db)
+            result.append(
+                {**n.__dict__, "upvotes": upvotes, "is_upvoted": upvoted}
+            )
+        return result
+
+    except Exception as e:
+        logger.error("Error occurred while reading news: %s", str(e), exc_info=True)
+        capture_message('Something went wrong while reading news')
+        capture_exception(e)
+        return [] 
 
 
 @router.get("/news/user_news")
@@ -74,14 +82,23 @@ def read_user_news(
     news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
     result = []
     for article in news:
-        upvotes, upvoted = get_article_upvote_details(article.id, u.id, db)
-        result.append(
-            {
-                **article.__dict__,
-                "upvotes": upvotes,
-                "is_upvoted": upvoted,
-            }
-        )
+        try:
+            # 嘗試獲取文章的 upvotes 和 upvoted 狀態
+            upvotes, upvoted = get_article_upvote_details(article.id, u.id, db)
+            
+            # 將文章資料與 upvotes 和 is_upvoted 一起加入結果列表
+            result.append(
+                {
+                    **article.__dict__,
+                    "upvotes": upvotes,
+                    "is_upvoted": upvoted,
+                }
+            )
+        except Exception as e:
+            # 記錄錯誤並發送到 Sentry
+            logger.error("Error processing article ID %s: %s", article.id, str(e), exc_info=True)
+            capture_message(f"Error processing article with ID: {article.id}")
+            capture_exception(e)
     return result
 
 
@@ -98,7 +115,9 @@ async def search_news(request: PromptRequest):
             detailed_news.id = next(_id_counter) 
             news_list.append(detailed_news)
         except Exception as e:
-            print(e)
+            logger.error("Error processing news URL %s: %s", news.url, str(e), exc_info=True)
+            capture_message(f"Error processing news with URL: {news.url}")
+            capture_exception(e)
     return sorted(news_list, key=lambda x: x.time, reverse=True)
 
 @router.post("/news/news_summary")
