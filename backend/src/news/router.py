@@ -18,7 +18,7 @@ from sentry_sdk import capture_exception, capture_message
 app = FastAPI()
 router = APIRouter()
 _id_counter = itertools.count(start=1000000)
-crawler = UDNCrawler(timeout=10)
+crawler = UDNCrawler(timeout=10)  # INSTANTIATING THE CRAWLER
 
 @router.post("/fetch_news")
 def fetch_news():
@@ -136,7 +136,6 @@ async def news_summary_with_custom_model(
         payload: NewsSummaryCustomModelRequestSchema, user=Depends(authenticate_user_token)
 ):
     response = {}
-
     if not payload.llm_model:
         return {"message": "Model is required."}
     elif payload.llm_model.lower() == "openai":

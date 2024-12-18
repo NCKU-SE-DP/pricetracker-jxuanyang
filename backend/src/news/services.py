@@ -6,6 +6,9 @@ from ..config import Config
 from ..models import user_news_association_table, NewsArticle
 from ..crawler.crawler_base import NewsWithSummary
 from ..crawler.udn_crawler import UDNCrawler
+from ..config import Config
+from ..llm_client.llm_client import LLMClient
+from ..llm_client.base import RelevanceEvaluation
 
 from ..llm_client.openai_client import OpenAIClient
 from ..llm_client.base import RelevanceEvaluation
@@ -97,6 +100,7 @@ def toggle_upvote(n_id, u_id, db):
         return "Article upvoted"
 
 def get_new(is_initial=False):
+
     try:
         news_data = get_new_info("價格", is_initial=is_initial)
         
@@ -137,6 +141,7 @@ def get_new(is_initial=False):
         )
         capture_message('Something went wrong while processing news')  # 發送自定義錯誤訊息
         capture_exception(e)  # 捕捉並發送例外到 Sentry
+
 
 def fetch_news_data():
     try:
