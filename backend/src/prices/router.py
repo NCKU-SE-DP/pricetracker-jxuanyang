@@ -1,7 +1,6 @@
 from fastapi import Query, FastAPI,APIRouter
 import requests
 from src.logger_config import logger
-from sentry_sdk import capture_exception,capture_message
 
 router = APIRouter()
 app=FastAPI()
@@ -20,8 +19,6 @@ def get_necessities_prices(category: str = Query(None), commodity: str = Query(N
             "Failed to fetch necessities prices for category '%s' and commodity '%s': %s", 
             category, commodity, str(e), exc_info=True
         )
-        capture_message('Something went wrong while fetching necessities prices')  # 發送自定義錯誤訊息到 Sentry
-        capture_exception(e)  # 捕捉並發送例外到 Sentry
-        return {"error": "Failed to fetch necessities prices. Please try again later."}
+        raise Exception(f'Something went wrong while fetching necessities prices for category "{category}" and commodity "{commodity}": {str(e)}') from e
     
     return response.json()

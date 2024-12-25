@@ -12,7 +12,6 @@ import itertools
 from ..crawler.udn_crawler import UDNCrawler
 
 from src.logger_config import logger
-from sentry_sdk import capture_exception, capture_message
 
 app = FastAPI()
 router = APIRouter()
@@ -39,9 +38,7 @@ def fetch_news():
 
     except Exception as e:
         logger.error("Error occurred while fetching or processing news: %s", str(e), exc_info=True)
-        capture_message('Something went wrong while fetching or processing news')
-        capture_exception(e)
-        return []
+        raise Exception(f'Something went wrong while fetching or processing news: {str(e)}') from e
 
 
 @router.post("/news/{article_id}/upvote")
@@ -68,10 +65,7 @@ def read_news(db: Session = Depends(session_opener)):
 
     except Exception as e:
         logger.error("Error occurred while reading news: %s", str(e), exc_info=True)
-        capture_message('Something went wrong while reading news')
-        capture_exception(e)
-        return [] 
-
+        raise Exception('Something went wrong while reading news') from e
 
 @router.get("/news/user_news")
 def read_user_news(
@@ -96,8 +90,7 @@ def read_user_news(
         except Exception as e:
             # 記錄錯誤並發送到 Sentry
             logger.error("Error processing article ID %s: %s", article.id, str(e), exc_info=True)
-            capture_message(f"Error processing article with ID: {article.id}")
-            capture_exception(e)
+            raise Exception(f"Error processing article with ID: {article.id}") from e
     return result
 
 
@@ -115,8 +108,7 @@ async def search_news(request: PromptRequest):
             news_list.append(detailed_news)
         except Exception as e:
             logger.error("Error processing news URL %s: %s", news.url, str(e), exc_info=True)
-            capture_message(f"Error processing news with URL: {news.url}")
-            capture_exception(e)
+            raise Exception(f"Error processing news with URL: {news.url}") from e
     return sorted(news_list, key=lambda x: x.time, reverse=True)
 
 @router.post("/news/news_summary")

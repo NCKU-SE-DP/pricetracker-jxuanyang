@@ -1,6 +1,5 @@
 import aisuite as ai
 from src.logger_config import logger
-from sentry_sdk import capture_exception, capture_message
 from .template.base import LLMClientTemplate
 
 class OpenAIClient(LLMClientTemplate):
@@ -15,5 +14,4 @@ class OpenAIClient(LLMClientTemplate):
                 "Failed to initialize OpenAI client with API key '%s': %s", 
                 self.api_key, str(e), exc_info=True
             )
-            capture_message('Something went wrong while initializing OpenAI client')  # 發送自定義錯誤訊息
-            capture_exception(e)  # 捕捉並發送例外到 Sentry
+            raise Exception(f'Something went wrong while initializing OpenAI client: {str(e)}') from e

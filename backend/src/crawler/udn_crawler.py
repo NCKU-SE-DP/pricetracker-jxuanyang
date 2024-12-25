@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from .crawler_base import NewsCrawlerBase, Headline, News, NewsWithSummary
 from ..models import NewsArticle
 from src.logger_config import logger
-from sentry_sdk import capture_exception, capture_message
 
 
 class UDNCrawler(NewsCrawlerBase):
@@ -30,8 +29,7 @@ class UDNCrawler(NewsCrawlerBase):
                 "Error fetching headlines for search term '%s' and page range '%s': %s", 
                 search_term, page, str(e), exc_info=True
             )
-            capture_message('Something went wrong while fetching headlines')  # 發送自定義錯誤訊息
-            capture_exception(e)  # 捕捉並發送例外到 Sentry
+            raise Exception(f'Something went wrong while fetching headlines: {str(e)}') from e
         return headlines
 
     def _fetch_news(self, page: int, search_term: str) -> list[Headline]:
@@ -70,8 +68,7 @@ class UDNCrawler(NewsCrawlerBase):
                 "Error parsing news from URL '%s': %s", 
                 url, str(e), exc_info=True
             )
-            capture_message(f'Something went wrong while parsing news from {url}')  # 發送自定義錯誤訊息
-            capture_exception(e)  # 捕捉並發送例外到 Sentry 
+            raise Exception(f"Error parsing news from URL '{url}': {str(e)}") from e 
 
     @staticmethod
     def _extract_news(soup: BeautifulSoup, url: str) -> News:
@@ -92,8 +89,7 @@ class UDNCrawler(NewsCrawlerBase):
                 "Error extracting news from URL '%s': %s", 
                 url, str(e), exc_info=True
             )
-            capture_message(f'Something went wrong while extracting news from {url}')  # 發送自定義錯誤訊息
-            capture_exception(e)  # 捕捉並發送例外到 Sentry
+            raise Exception(f'Something went wrong while extracting news from {url}: {str(e)}') from e
 
     def save(self, news: NewsWithSummary, db: Session):
         db.add(NewsArticle(
