@@ -1,12 +1,10 @@
 from fastapi import APIRouter, Depends, FastAPI
 from sqlalchemy.orm import Session
-
-from ..database import SessionLocal
 from ..models import NewsArticle
 
 from ..auth.services import authenticate_user_token, session_opener
-from ..news.services import toggle_upvote, get_article_upvote_details,anthropic_client
-from ..news.schemas import PromptRequest, NewsSummaryCustomModelRequestSchema,NewsSumaryRequestSchema
+from ..news.services import toggle_upvote, get_article_upvote_details
+from ..news.schemas import PromptRequest,NewsSumaryRequestSchema
 from ..news.services import get_new_info,openai_client,udn_crawler,openai_client
 
 import itertools
