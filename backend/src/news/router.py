@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, FastAPI
 from sqlalchemy.orm import Session
+
 from ..models import NewsArticle
 
 from ..auth.services import authenticate_user_token, session_opener
@@ -58,10 +59,10 @@ def read_news(db: Session = Depends(session_opener)):
     try:
         news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
         result = []
-        for n in news:
-            upvotes, upvoted = get_article_upvote_details(n.id, None, db)
+        for article in news:
+            upvotes, upvoted = get_article_upvote_details(article.id, None, db)
             result.append(
-                {**n.__dict__, "upvotes": upvotes, "is_upvoted": upvoted}
+                {**article.__dict__, "upvotes": upvotes, "is_upvoted": upvoted}
             )
         return result
 
