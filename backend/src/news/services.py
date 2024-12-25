@@ -12,7 +12,7 @@ from ..llm_client.base import RelevanceEvaluation
 from ..llm_client.openai_client import OpenAIClient
 from ..llm_client.base import RelevanceEvaluation
 from ..llm_client.anthropic_client import AnthropicClient
-
+from ..error.error_handler import ErrorHandler
 from src.logger_config import logger
 from sentry_sdk import capture_exception, capture_message
 import os
@@ -105,7 +105,12 @@ def get_new(is_initial=False):
 
     try:
         news_data = get_new_info("價格", is_initial=is_initial)
-        
+    except Exception as e:
+        logger.error(
+            "Error occurred while fetching or processing news: %s", str(e), exc_info=True)
+        capture_message('Something went wrong while processing news')  # 發送自定義錯誤訊息
+        capture_exception(e)  # 捕捉並發送例外到 Sentry
+    try:
         for news in news_data:
             title = news.title
             relevance = openai_client.evaluate_relevance(title, "民生用品的價格變化")
@@ -135,7 +140,6 @@ def get_new(is_initial=False):
                     reason=result["原因"],
                 )
                 add_new(detailed_news)
-    
     except Exception as e:
         # 記錄錯誤信息並發送到 Sentry
         logger.error(
