@@ -71,8 +71,7 @@ class UDNCrawler(NewsCrawlerBase):
                 url, str(e), exc_info=True
             )
             capture_message(f'Something went wrong while parsing news from {url}')  # 發送自定義錯誤訊息
-            capture_exception(e)  # 捕捉並發送例外到 Sentry
-        return None  
+            capture_exception(e)  # 捕捉並發送例外到 Sentry 
 
     @staticmethod
     def _extract_news(soup: BeautifulSoup, url: str) -> News:
