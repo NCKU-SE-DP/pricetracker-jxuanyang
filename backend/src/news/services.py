@@ -159,7 +159,6 @@ def fetch_news_data():
         logger.error("Error fetching news data: %s", str(e), exc_info=True)
         capture_message('Error occurred while fetching news data')
         capture_exception(e)
-        return None 
 
 def news_exists(id2, db: Session):
     return db.query(NewsArticle).filter_by(id=id2).first() is not None
