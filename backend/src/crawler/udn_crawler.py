@@ -95,7 +95,6 @@ class UDNCrawler(NewsCrawlerBase):
             )
             capture_message(f'Something went wrong while extracting news from {url}')  # 發送自定義錯誤訊息
             capture_exception(e)  # 捕捉並發送例外到 Sentry
-            return None  # 返回 None 以防止程序崩潰
 
     def save(self, news: NewsWithSummary, db: Session):
         db.add(NewsArticle(
