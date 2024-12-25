@@ -8,7 +8,6 @@ from ..auth.services import authenticate_user_token, session_opener
 from ..news.services import toggle_upvote, get_article_upvote_details,anthropic_client
 from ..news.schemas import PromptRequest, NewsSummaryCustomModelRequestSchema
 from ..news.services import get_new_info,openai_client,udn_crawler,openai_client
-
 import itertools
 import json
 from ..crawler.udn_crawler import UDNCrawler
@@ -90,6 +89,7 @@ async def search_news(request: PromptRequest):
     prompt = request.prompt
     news_list = []
     keywords = openai_client.extract_search_keywords(prompt)
+
     news_items = get_new_info(keywords)  
 
     for news in news_items:
@@ -117,7 +117,6 @@ async def news_summary_with_custom_model(
         payload: NewsSummaryCustomModelRequestSchema, user=Depends(authenticate_user_token)
 ):
     response = {}
-
     if not payload.llm_model:
         return {"message": "Model is required."}
     elif payload.llm_model.lower() == "openai":
