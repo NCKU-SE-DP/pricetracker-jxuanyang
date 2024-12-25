@@ -7,7 +7,6 @@ from ..models import user_news_association_table, NewsArticle
 from ..crawler.crawler_base import NewsWithSummary
 from ..crawler.udn_crawler import UDNCrawler
 from ..config import Config
-from ..llm_client.llm_client import LLMClient
 from ..llm_client.base import RelevanceEvaluation
 
 from ..llm_client.openai_client import OpenAIClient
@@ -16,9 +15,12 @@ from ..llm_client.anthropic_client import AnthropicClient
 
 from src.logger_config import logger
 from sentry_sdk import capture_exception, capture_message
+import os
 
 udn_crawler = UDNCrawler()
 openai_client = OpenAIClient(api_key=Config.OPENAI_TOKEN)
+if not os.getenv("OPENAI_TOKEN"):
+    raise ValueError("OPENAI_TOKEN is not loaded from .env file.")
 anthropic_client = AnthropicClient(api_key=Config.ANTHROPIC_TOKEN)
 # def generate_summary(content):
 #     m = [

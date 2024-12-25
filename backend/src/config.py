@@ -1,10 +1,13 @@
 PAGES_INFO_URL = "sqlite:///./news_database.db"
 
 from dotenv import load_dotenv
+import dotenv
 import os
 
+dotenv.load_dotenv()
 dotenv_path = os.path.join(os.path.dirname(__file__),"./.env")
 load_dotenv(dotenv_path)
+print(f"Loading .env file from: {dotenv_path}")
 
 class Config:
         FASTAPI_PREFIX = "/api/v1"
@@ -13,9 +16,9 @@ class Config:
         SENTRY_PROFILES_SAMPLE_RATE = 1.0
         ALLOWED_ORIGINS = ["http://localhost:8080"]
         LLM_ENABLED = True
-        OPENAI_TOKEN = os.getenv('OPENAI_TOKEN')
+        OPENAI_TOKEN = os.getenv("OPENAI_TOKEN", "")
         OPENAI_LLM_MODEL = "gpt-3.5-turbo"
-        ANTHROPIC_TOKEN = os.getenv('ANTHROPIC_TOKEN')
+        ANTHROPIC_TOKEN = os.getenv("ANTHROPIC_TOKEN","")
         ANTHROPIC_LLM_MODEL = "claude-3-5-sonnet-20240620"
         SECRET_KEY = "1892dhianiandowqd0n"
         USERNAME_MAX_LENGTH = 50
