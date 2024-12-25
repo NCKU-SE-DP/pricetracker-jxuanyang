@@ -5,7 +5,7 @@ from ..models import NewsArticle
 
 from ..auth.services import authenticate_user_token, session_opener
 from ..news.services import toggle_upvote, get_article_upvote_details
-from ..news.schemas import PromptRequest,NewsSumaryRequestSchema
+from ..news.schemas import PromptRequest,NewsSummaryRequestSchema
 from ..news.services import get_new_info,openai_client,udn_crawler,openai_client
 
 import itertools
@@ -113,7 +113,7 @@ async def search_news(request: PromptRequest):
 
 @router.post("/news/news_summary")
 async def news_summary(
-        payload: NewsSumaryRequestSchema, u=Depends(authenticate_user_token)
+        payload: NewsSummaryRequestSchema, u=Depends(authenticate_user_token)
 ):
     response = {}
     result = openai_client.generate_summary(payload.content)

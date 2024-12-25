@@ -8,7 +8,7 @@ class NewsArticleSchema(BaseModel):
     summary: str
     reason: str
 
-class NewsSumaryRequestSchema(BaseModel):
+class NewsSummaryRequestSchema(BaseModel):
     content: str
 
 class PromptRequest(BaseModel):
