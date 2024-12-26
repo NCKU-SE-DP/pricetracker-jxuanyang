@@ -1,6 +1,7 @@
 import abc
 from pydantic import BaseModel, Field
-from openai import OpenAI
+import aisuite as ai
+
 from enum import Enum
 
 class PromptPassingInterface(BaseModel):
@@ -16,18 +17,13 @@ class PromptPassingInterface(BaseModel):
         return value
 
 class RelevanceEvaluation(str, Enum):
-    high = "high"
-    medium = "medium"
-    low = "low"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 class LLMClientBase(metaclass=abc.ABCMeta):
-    openai_client: OpenAI | None
+    client: ai.Client = ...
 
     @abc.abstractmethod
     def _generate(self, prompt: PromptPassingInterface) -> str:
-        """
-        Generate the response based on the prompt.
-        :param prompt:
-        :return:
-        """
         return NotImplemented

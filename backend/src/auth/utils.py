@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from jose import jwt
 from datetime import datetime, timedelta
-from src.models import User  # 假設 User 模型在 src.models 中
+from src.models import User
 
 # 設定密碼加密方式
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

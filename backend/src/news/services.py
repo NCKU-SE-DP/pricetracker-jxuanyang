@@ -1,20 +1,24 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import delete, insert, select
 import json
-from openai import OpenAI
-from urllib.parse import quote
+
 import requests
 from bs4 import BeautifulSoup
+from ..config import Config
 from ..models import user_news_association_table, NewsArticle
-from ..config import OPENAI_API_KEY, PAGES_INFO_URL
 from ..crawler.crawler_base import NewsWithSummary
 from ..crawler.udn_crawler import UDNCrawler
 from ..config import Config
 from ..llm_client.llm_client import LLMClient
 from ..llm_client.base import RelevanceEvaluation
 
+from ..llm_client.openai_client import OpenAIClient
+from ..llm_client.base import RelevanceEvaluation
+from ..llm_client.anthropic_client import AnthropicClient
+
 udn_crawler = UDNCrawler()
-llm_client = LLMClient(_api_key=Config.OPENAI_TOKEN)
+openai_client = OpenAIClient(api_key=Config.OPENAI_TOKEN)
+anthropic_client = AnthropicClient(api_key=Config.ANTHROPIC_TOKEN)
 # def generate_summary(content):
 #     m = [
 #         {
@@ -114,14 +118,12 @@ def get_new(is_initial=False):
     news_data = get_new_info("價格", is_initial=is_initial)
     for news in news_data:
         title = news.title
-        relevance = llm_client.evaluate_relevance(title, "民生用品的價格變化")
+        relevance = openai_client.evaluate_relevance(title, "民生用品的價格變化")
         if relevance == RelevanceEvaluation.high:
             response = requests.get(news["titleLink"])
             soup = BeautifulSoup(response.text, "html.parser")
-            # 標題
             title = soup.find("h1", class_="article-content__title").text
             time = soup.find("time", class_="article-content__time").text
-            # 定位到包含文章内容的 <section>
             content_section = soup.find("section", class_="article-content__editor")
 
             paragraphs = [
@@ -130,7 +132,7 @@ def get_new(is_initial=False):
                 if p.text.strip() != "" and "▪" not in p.text
             ]
             detailed_news =  udn_crawler.validate_and_parse(news.url)
-            result = llm_client.generate_summary(" ".join(detailed_news["content"]))
+            result = openai_client.generate_summary(" ".join(detailed_news["content"]))
             detailed_news = NewsWithSummary(
                 url=detailed_news.url,
                 title=detailed_news.title,
@@ -140,8 +142,6 @@ def get_new(is_initial=False):
                 reason=result["原因"],
             )
             add_new(detailed_news)
-
-
 
 def fetch_news_data():
     response = requests.get("https://newsapi.org/v2/everything?q=price&apiKey=your_api_key")
