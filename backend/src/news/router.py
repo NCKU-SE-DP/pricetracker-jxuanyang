@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, FastAPI
 from sqlalchemy.orm import Session
-
 from ..models import NewsArticle
 
 from ..auth.services import authenticate_user_token, session_opener
@@ -13,10 +12,12 @@ from ..crawler.udn_crawler import UDNCrawler
 
 from src.logger_config import logger
 
+
 app = FastAPI()
 router = APIRouter()
 _id_counter = itertools.count(start=1000000)
 crawler = UDNCrawler(timeout=10)  # INSTANTIATING THE CRAWLER
+
 
 @router.post("/fetch_news")
 def fetch_news():
@@ -99,6 +100,7 @@ async def search_news(request: PromptRequest):
     prompt = request.prompt
     news_list = []
     keywords = openai_client.extract_search_keywords(prompt)
+
     news_items = get_new_info(keywords)  
 
     for news in news_items:

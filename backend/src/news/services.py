@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import delete, insert, select
+
 import requests
 from bs4 import BeautifulSoup
 from ..config import Config
@@ -144,6 +145,7 @@ def get_new(is_initial=False):
             "Error occurred while fetching or processing news: %s", str(e), exc_info=True
         )
         raise Exception(f'Something went wrong while processing news: {str(e)}') from e
+
 
 
 def fetch_news_data():

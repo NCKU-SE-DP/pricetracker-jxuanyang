@@ -1,5 +1,7 @@
 import aisuite as ai
+
 from src.logger_config import logger
+
 from .template.base import LLMClientTemplate
 
 class OpenAIClient(LLMClientTemplate):
