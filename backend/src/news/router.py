@@ -15,6 +15,7 @@ from ..crawler.udn_crawler import UDNCrawler
 from src.logger_config import logger
 from sentry_sdk import capture_exception, capture_message
 
+
 app = FastAPI()
 router = APIRouter()
 _id_counter = itertools.count(start=1000000)
@@ -107,6 +108,7 @@ async def search_news(request: PromptRequest):
     prompt = request.prompt
     news_list = []
     keywords = openai_client.extract_search_keywords(prompt)
+
     news_items = get_new_info(keywords)  
 
     for news in news_items:

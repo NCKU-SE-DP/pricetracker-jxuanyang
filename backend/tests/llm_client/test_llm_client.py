@@ -33,7 +33,6 @@ class TestOpenAIClient(unittest.TestCase):
         result = self.client.extract_search_keywords("這篇新聞提到食品價格的波動以及市場的供應鏈問題")
         self.assertGreater(len(result.split()), 0)
 
-
     @patch('src.llm_client.openai_client.OpenAIClient._generate')
     def test_evaluate_relevance(self, mock_generate):
         mock_generate.return_value = 'high'
@@ -48,7 +47,6 @@ class TestOpenAIClient(unittest.TestCase):
                 user_content="食品價格上漲"
             )
         )
-
 
     @patch('src.llm_client.openai_client.OpenAIClient._generate')
     def test_generate_summary(self, mock_generate):

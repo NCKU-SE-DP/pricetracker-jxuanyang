@@ -9,6 +9,7 @@ from src.main import session_opener
 from src.database import Base
 from src.models import User,user_news_association_table,NewsArticle
 from src.news.schemas import  PromptRequest,NewsSumaryRequestSchema
+
 from src.main import pwd_context
 from unittest.mock import Mock
 
@@ -153,7 +154,7 @@ def test_news_summary(mocker, test_token):
     openai_response = json.dumps({"影響": "test impact", "原因": "test reason"})
     mock_openai(mocker, openai_response)
 
-    request_body = NewsSumaryRequestSchema(content="Test news content")
+    request_body =  NewsSumaryRequestSchema(content="Test news content")
     response = client.post("/api/v1/news/news_summary", json=request_body.dict(), headers=headers)
 
     assert response.status_code == 200

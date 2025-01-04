@@ -1,6 +1,7 @@
 import aisuite as ai
 from src.logger_config import logger
 from sentry_sdk import capture_exception, capture_message
+
 from .template.base import LLMClientTemplate
 
 class AnthropicClient(LLMClientTemplate):
