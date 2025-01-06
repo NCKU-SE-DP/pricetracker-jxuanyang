@@ -6,6 +6,8 @@ from ..models import NewsArticle
 from src.logger_config import logger
 
 
+
+
 class UDNCrawler(NewsCrawlerBase):
     CHANNEL_ID = 2
 
@@ -68,6 +70,7 @@ class UDNCrawler(NewsCrawlerBase):
                 "Error parsing news from URL '%s': %s", 
                 url, str(e), exc_info=True
             )
+
             raise Exception(f"Error parsing news from URL '{url}': {str(e)}") from e 
 
     @staticmethod
@@ -90,6 +93,7 @@ class UDNCrawler(NewsCrawlerBase):
                 url, str(e), exc_info=True
             )
             raise Exception(f'Something went wrong while extracting news from {url}: {str(e)}') from e
+
 
     def save(self, news: NewsWithSummary, db: Session):
         db.add(NewsArticle(

@@ -6,7 +6,6 @@ on:
       - 'main'
       - 'develop'
       - 'refactor/U4W3' 
-
   pull_request:
     branches:
       - 'main'

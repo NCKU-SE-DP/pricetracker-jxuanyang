@@ -18,7 +18,6 @@ router = APIRouter()
 _id_counter = itertools.count(start=1000000)
 crawler = UDNCrawler(timeout=10)  # INSTANTIATING THE CRAWLER
 
-
 @router.post("/fetch_news")
 def fetch_news():
     try:

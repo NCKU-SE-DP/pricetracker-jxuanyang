@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import delete, insert, select
-
 import requests
 from bs4 import BeautifulSoup
 from ..config import Config
@@ -15,6 +14,10 @@ from ..llm_client.base import RelevanceEvaluation
 from ..llm_client.anthropic_client import AnthropicClient
 from ..error.error_handler import ErrorHandler
 from src.logger_config import logger
+import os
+
+from src.logger_config import logger
+from sentry_sdk import capture_exception, capture_message
 import os
 
 udn_crawler = UDNCrawler()
@@ -146,8 +149,6 @@ def get_new(is_initial=False):
         )
         raise Exception(f'Something went wrong while processing news: {str(e)}') from e
 
-
-
 def fetch_news_data():
     try:
         # 發送 HTTP 請求
@@ -161,6 +162,7 @@ def fetch_news_data():
     except requests.exceptions.RequestException as e:
         logger.error("Error fetching news data: %s", str(e), exc_info=True)
         raise Exception(f'Error occurred while fetching news data: {str(e)}') from e
+
 
 def news_exists(id2, db: Session):
     return db.query(NewsArticle).filter_by(id=id2).first() is not None
