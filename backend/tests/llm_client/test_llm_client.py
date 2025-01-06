@@ -48,6 +48,7 @@ class TestOpenAIClient(unittest.TestCase):
             )
         )
 
+
     @patch('src.llm_client.openai_client.OpenAIClient._generate')
     def test_generate_summary(self, mock_generate):
         mock_generate.return_value = '{"影響": "影響描述", "原因": "原因描述"}'

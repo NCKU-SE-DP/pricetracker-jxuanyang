@@ -1,7 +1,6 @@
 import abc
 from pydantic import BaseModel, Field
 import aisuite as ai
-
 from enum import Enum
 
 class PromptPassingInterface(BaseModel):

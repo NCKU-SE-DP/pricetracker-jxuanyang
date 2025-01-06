@@ -20,10 +20,10 @@ def hash_password(password):
 
 def check_user_password_is_correct(db: Session, n: str, pwd: str):
     """檢查用戶名和密碼是否正確"""
-    OuO = db.query(User).filter(User.username == n).first()
-    if not OuO or not verify_password(pwd, OuO.hashed_password):  # 使用修正後的 verify_password
+    user = db.query(User).filter(User.username == n).first()
+    if not user or not verify_password(pwd, user.hashed_password):  # 使用修正後的 verify_password
         return False
-    return OuO
+    return user
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     """創建存取權杖"""

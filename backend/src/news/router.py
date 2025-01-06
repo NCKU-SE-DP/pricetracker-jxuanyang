@@ -1,19 +1,16 @@
 from fastapi import APIRouter, Depends, FastAPI
 from sqlalchemy.orm import Session
-
-from ..database import SessionLocal
 from ..models import NewsArticle
 
 from ..auth.services import authenticate_user_token, session_opener
-from ..news.services import toggle_upvote, get_article_upvote_details,anthropic_client
-from ..news.schemas import PromptRequest, NewsSummaryCustomModelRequestSchema,NewsSumaryRequestSchema
+from ..news.services import toggle_upvote, get_article_upvote_details
+from ..news.schemas import PromptRequest,NewsSummaryRequestSchema
 from ..news.services import get_new_info,openai_client,udn_crawler,openai_client
 
 import itertools
 from ..crawler.udn_crawler import UDNCrawler
 
 from src.logger_config import logger
-from sentry_sdk import capture_exception, capture_message
 
 
 app = FastAPI()
@@ -41,9 +38,7 @@ def fetch_news():
 
     except Exception as e:
         logger.error("Error occurred while fetching or processing news: %s", str(e), exc_info=True)
-        capture_message('Something went wrong while fetching or processing news')
-        capture_exception(e)
-        return []
+        raise Exception(f'Something went wrong while fetching or processing news: {str(e)}') from e
 
 
 @router.post("/news/{article_id}/upvote")
@@ -61,19 +56,16 @@ def read_news(db: Session = Depends(session_opener)):
     try:
         news = db.query(NewsArticle).order_by(NewsArticle.time.desc()).all()
         result = []
-        for n in news:
-            upvotes, upvoted = get_article_upvote_details(n.id, None, db)
+        for article in news:
+            upvotes, upvoted = get_article_upvote_details(article.id, None, db)
             result.append(
-                {**n.__dict__, "upvotes": upvotes, "is_upvoted": upvoted}
+                {**article.__dict__, "upvotes": upvotes, "is_upvoted": upvoted}
             )
         return result
 
     except Exception as e:
         logger.error("Error occurred while reading news: %s", str(e), exc_info=True)
-        capture_message('Something went wrong while reading news')
-        capture_exception(e)
-        return [] 
-
+        raise Exception('Something went wrong while reading news') from e
 
 @router.get("/news/user_news")
 def read_user_news(
@@ -98,8 +90,7 @@ def read_user_news(
         except Exception as e:
             # 記錄錯誤並發送到 Sentry
             logger.error("Error processing article ID %s: %s", article.id, str(e), exc_info=True)
-            capture_message(f"Error processing article with ID: {article.id}")
-            capture_exception(e)
+            raise Exception(f"Error processing article with ID: {article.id}") from e
     return result
 
 
@@ -118,13 +109,12 @@ async def search_news(request: PromptRequest):
             news_list.append(detailed_news)
         except Exception as e:
             logger.error("Error processing news URL %s: %s", news.url, str(e), exc_info=True)
-            capture_message(f"Error processing news with URL: {news.url}")
-            capture_exception(e)
+            raise Exception(f"Error processing news with URL: {news.url}") from e
     return sorted(news_list, key=lambda x: x.time, reverse=True)
 
 @router.post("/news/news_summary")
 async def news_summary(
-        payload: NewsSumaryRequestSchema, u=Depends(authenticate_user_token)
+        payload: NewsSummaryRequestSchema, u=Depends(authenticate_user_token)
 ):
     response = {}
     result = openai_client.generate_summary(payload.content)
