@@ -1,0 +1,265 @@
+2024-12-18 23:45:59,635 - example_logger - ERROR - Error occurred while fetching or processing news: cannot access local variable 'e' where it is not associated with a value
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 26, in fetch_news
+    headlines = crawler.startup("technology")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 18, in startup
+    return self.get_headline(search_term, page=(1, 10))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 34, in get_headline
+    capture_exception(e)  # 捕捉並發送例外到 Sentry
+                      ^
+UnboundLocalError: cannot access local variable 'e' where it is not associated with a value
+2024-12-18 23:46:03,031 - example_logger - ERROR - Error occurred while fetching or processing news: cannot access local variable 'e' where it is not associated with a value
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 26, in fetch_news
+    headlines = crawler.startup("technology")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 18, in startup
+    return self.get_headline(search_term, page=(1, 10))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 34, in get_headline
+    capture_exception(e)  # 捕捉並發送例外到 Sentry
+                      ^
+UnboundLocalError: cannot access local variable 'e' where it is not associated with a value
+2024-12-18 23:47:31,837 - example_logger - ERROR - Error fetching headlines for search term 'technology' and page range '(1, 10)': HTTPSConnectionPool(host='udn.com', port=443): Max retries exceeded with url: /api/more?page=1&search_term=technology&channelId=2&type=searchword&id=search%3Atechnology (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x00000139F9B88B90>: Failed to resolve 'udn.com' ([Errno 11001] getaddrinfo failed)"))
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connection.py", line 196, in _new_conn
+    sock = connection.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\util\connection.py", line 60, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\AppData\Local\Programs\Python\Python312\Lib\socket.py", line 976, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connectionpool.py", line 789, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connectionpool.py", line 490, in _make_request
+    raise new_e
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connectionpool.py", line 466, in _make_request
+    self._validate_conn(conn)
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connectionpool.py", line 1095, in _validate_conn
+    conn.connect()
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connection.py", line 615, in connect
+    self.sock = sock = self._new_conn()
+                       ^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connection.py", line 203, in _new_conn
+    raise NameResolutionError(self.host, self, e) from e
+urllib3.exceptions.NameResolutionError: <urllib3.connection.HTTPSConnection object at 0x00000139F9B88B90>: Failed to resolve 'udn.com' ([Errno 11001] getaddrinfo failed)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\requests\adapters.py", line 667, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\connectionpool.py", line 843, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\urllib3\util\retry.py", line 519, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='udn.com', port=443): Max retries exceeded with url: /api/more?page=1&search_term=technology&channelId=2&type=searchword&id=search%3Atechnology (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x00000139F9B88B90>: Failed to resolve 'udn.com' ([Errno 11001] getaddrinfo failed)"))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 26, in get_headline
+    headlines.extend(self._fetch_news(p, search_term))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 39, in _fetch_news
+    response = self._perform_request(self.news_website_url, params)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 53, in _perform_request
+    return get(url, params=params)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\requests\api.py", line 73, in get
+    return request("get", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\requests\api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\requests\sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\requests\sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\venv\Lib\site-packages\requests\adapters.py", line 700, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='udn.com', port=443): Max retries exceeded with url: /api/more?page=1&search_term=technology&channelId=2&type=searchword&id=search%3Atechnology (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x00000139F9B88B90>: Failed to resolve 'udn.com' ([Errno 11001] getaddrinfo failed)"))
+2024-12-18 23:48:35,651 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123153/8405429': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:48:35,677 - example_logger - ERROR - Error occurred while fetching or processing news: 'NoneType' object has no attribute 'title'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 32, in fetch_news
+    "title": news.title,
+             ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'title'
+2024-12-18 23:51:31,815 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123454/8131980': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:51:31,834 - example_logger - ERROR - Error processing news URL https://tech.udn.com/tech/story/123454/8131980: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-18 23:51:32,094 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123454/8015532': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:51:32,113 - example_logger - ERROR - Error processing news URL https://tech.udn.com/tech/story/123454/8015532: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-18 23:51:32,399 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123454/7961887': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:51:32,417 - example_logger - ERROR - Error processing news URL https://tech.udn.com/tech/story/123454/7961887: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-18 23:51:33,681 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123151/6060213': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:51:33,700 - example_logger - ERROR - Error processing news URL https://tech.udn.com/tech/story/123151/6060213: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-18 23:51:34,075 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123153/5358310': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:51:34,095 - example_logger - ERROR - Error processing news URL https://tech.udn.com/tech/story/123153/5358310: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-18 23:51:34,233 - example_logger - ERROR - Error extracting news from URL 'https://opinion.udn.com/opinion/story/6068/1349397': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-18 23:51:34,245 - example_logger - ERROR - Error processing news URL https://opinion.udn.com/opinion/story/6068/1349397: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:25:35,956 - example_logger - ERROR - Error extracting news from URL 'https://style.udn.com/style/story/11350/8433345': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:25:35,975 - example_logger - ERROR - Error processing news URL https://style.udn.com/style/story/11350/8433345: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:25:42,987 - example_logger - ERROR - Error extracting news from URL 'https://style.udn.com/style/story/11350/8433003': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:25:43,011 - example_logger - ERROR - Error processing news URL https://style.udn.com/style/story/11350/8433003: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:25:44,769 - example_logger - ERROR - Error extracting news from URL 'https://health.udn.com/health/story/9559/8432235': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:25:44,788 - example_logger - ERROR - Error processing news URL https://health.udn.com/health/story/9559/8432235: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:27:55,665 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123158/6521611': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:27:55,682 - example_logger - ERROR - Error processing news URL https://tech.udn.com/tech/story/123158/6521611: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:28:00,329 - example_logger - ERROR - Error extracting news from URL 'https://sdgs.udn.com/sdgs/story/122222/4417749': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:28:00,340 - example_logger - ERROR - Error processing news URL https://sdgs.udn.com/sdgs/story/122222/4417749: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:28:00,570 - example_logger - ERROR - Error extracting news from URL 'https://health.udn.com/health/story/6017/3487353': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:28:00,590 - example_logger - ERROR - Error processing news URL https://health.udn.com/health/story/6017/3487353: 'NoneType' object has no attribute 'id'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 115, in search_news
+    detailed_news.id = next(_id_counter)
+    ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'id'
+2024-12-19 00:29:49,663 - example_logger - ERROR - Error extracting news from URL 'https://tech.udn.com/tech/story/123153/8405429': 'NoneType' object has no attribute 'text'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\crawler\udn_crawler.py", line 81, in _extract_news
+    title = soup.find("h1", class_="article-content__title").text
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'text'
+2024-12-19 00:29:49,685 - example_logger - ERROR - Error occurred while fetching or processing news: 'NoneType' object has no attribute 'title'
+Traceback (most recent call last):
+  File "C:\Users\jxuanyang\pricetracker-jxuanyang\backend\src\news\router.py", line 32, in fetch_news
+    "title": news.title,
+             ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'title'

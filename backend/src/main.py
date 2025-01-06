@@ -2,30 +2,20 @@ import json
 import sentry_sdk
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import delete, insert, select
-from sqlalchemy.orm import Session, sessionmaker
-from typing import List, Optional
-import requests
-from fastapi import APIRouter, HTTPException, Query, Depends, status, FastAPI
+from sqlalchemy.orm import Session
+from fastapi import  Depends, FastAPI
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError, jwt
+from jose import jwt
 from passlib.context import CryptContext
-from openai import OpenAI
-from pydantic import BaseModel, Field, AnyHttpUrl
-from sqlalchemy import (Column, ForeignKey, Integer, String, Table, Text, create_engine)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-from src.models import Base
-from src.auth.schemas import UserAuthSchema
 from src.auth.services import authenticate_user_token, session_opener
 from src.auth.utils import  check_user_password_is_correct
-from src.models import User,NewsArticle
+from src.models import NewsArticle
 from src.news.services import get_new
 from src.news.router import router as news_router
 from src.prices.router import router as prices_router
 from src.users.router import router as users_router
-from src.database import SessionLocal, engine, init_db
+from src.database import SessionLocal, init_db
 
 
 
@@ -33,9 +23,16 @@ from src.database import SessionLocal, engine, init_db
 init_db()
 # Sentry SDK initialization for error tracking
 sentry_sdk.init(
-    dsn="https://4001ffe917ccb261aa0e0c34026dc343@o4505702629834752.ingest.us.sentry.io/4507694792704000",
+    dsn="https://d3a3197b25d0294a521096472567fe80@o4508454899875840.ingest.us.sentry.io/4508454926811136",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for tracing.
     traces_sample_rate=1.0,
-    profiles_sample_rate=1.0,
+    _experiments={
+        # Set continuous_profiling_auto_start to True
+        # to automatically start the profiler on when
+        # possible.
+        "continuous_profiling_auto_start": True,
+    },
 )
 
 app = FastAPI()
@@ -97,5 +94,3 @@ async def login_for_access_token(
 @app.get("/api/v1/users/me")
 def read_users_me(user=Depends(authenticate_user_token)):
     return {"username": user.username}
-
-# Additional routes and functions (e.g., reading, searching news) can be placed here

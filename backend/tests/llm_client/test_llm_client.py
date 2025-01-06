@@ -63,8 +63,8 @@ class TestOpenAIClient(unittest.TestCase):
             )
         )
 
-    @patch('src.llm_client.openai_client.OpenAIClient._generate')
 
+    @patch('src.llm_client.openai_client.OpenAIClient._generate')
     def test_extract_search_keywords(self, mock_generate):
         mock_generate.return_value = '食品 價格'
 

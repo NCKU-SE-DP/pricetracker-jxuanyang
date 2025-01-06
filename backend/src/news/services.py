@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import delete, insert, select
-import json
-
 import requests
 from bs4 import BeautifulSoup
 from ..config import Config
@@ -9,15 +7,20 @@ from ..models import user_news_association_table, NewsArticle
 from ..crawler.crawler_base import NewsWithSummary
 from ..crawler.udn_crawler import UDNCrawler
 from ..config import Config
-from ..llm_client.llm_client import LLMClient
 from ..llm_client.base import RelevanceEvaluation
 
 from ..llm_client.openai_client import OpenAIClient
 from ..llm_client.base import RelevanceEvaluation
 from ..llm_client.anthropic_client import AnthropicClient
 
+from src.logger_config import logger
+from sentry_sdk import capture_exception, capture_message
+import os
+
 udn_crawler = UDNCrawler()
 openai_client = OpenAIClient(api_key=Config.OPENAI_TOKEN)
+if not os.getenv("OPENAI_TOKEN"):
+    raise ValueError("OPENAI_TOKEN is not loaded from .env file.")
 anthropic_client = AnthropicClient(api_key=Config.ANTHROPIC_TOKEN)
 # def generate_summary(content):
 #     m = [
@@ -51,21 +54,11 @@ anthropic_client = AnthropicClient(api_key=Config.ANTHROPIC_TOKEN)
 #     return completion.choices[0].message.content
 session = Session()
 def add_new(news_data):
-    """
-    add new to db
-    :param news_data: news info
-    :return:
-    """
+
     udn_crawler.save(news_data, session)
 
 def get_new_info(search_term: str, is_initial=False):
-    """
-    get new
 
-    :param search_term:
-    :param is_initial:
-    :return:
-    """
     return udn_crawler.get_headline(search_term, (1, 10) if is_initial else 1)
 
 def get_article_upvote_details(article_id, uid, db):
@@ -109,43 +102,64 @@ def toggle_upvote(n_id, u_id, db):
         return "Article upvoted"
 
 def get_new(is_initial=False):
-    """
-    get new info
 
-    :param is_initial:
-    :return:
-    """
-    news_data = get_new_info("價格", is_initial=is_initial)
-    for news in news_data:
-        title = news.title
-        relevance = openai_client.evaluate_relevance(title, "民生用品的價格變化")
-        if relevance == RelevanceEvaluation.high:
-            response = requests.get(news["titleLink"])
-            soup = BeautifulSoup(response.text, "html.parser")
-            title = soup.find("h1", class_="article-content__title").text
-            time = soup.find("time", class_="article-content__time").text
-            content_section = soup.find("section", class_="article-content__editor")
+    try:
+        news_data = get_new_info("價格", is_initial=is_initial)
+        
+        for news in news_data:
+            title = news.title
+            relevance = openai_client.evaluate_relevance(title, "民生用品的價格變化")
+            
+            if relevance == RelevanceEvaluation.high:
+                response = requests.get(news["titleLink"])
+                soup = BeautifulSoup(response.text, "html.parser")
+                
+                title = soup.find("h1", class_="article-content__title").text
+                time = soup.find("time", class_="article-content__time").text
+                content_section = soup.find("section", class_="article-content__editor")
+                
+                paragraphs = [
+                    p.text
+                    for p in content_section.find_all("p")
+                    if p.text.strip() != "" and "▪" not in p.text
+                ]
+                detailed_news = udn_crawler.validate_and_parse(news.url)
+                result = openai_client.generate_summary(" ".join(detailed_news["content"]))
+                
+                detailed_news = NewsWithSummary(
+                    url=detailed_news.url,
+                    title=detailed_news.title,
+                    time=detailed_news.time,
+                    content=detailed_news.content,
+                    summary=result["影響"],
+                    reason=result["原因"],
+                )
+                add_new(detailed_news)
+    
+    except Exception as e:
+        # 記錄錯誤信息並發送到 Sentry
+        logger.error(
+            "Error occurred while fetching or processing news: %s", str(e), exc_info=True
+        )
+        capture_message('Something went wrong while processing news')  # 發送自定義錯誤訊息
+        capture_exception(e)  # 捕捉並發送例外到 Sentry
 
-            paragraphs = [
-                p.text
-                for p in content_section.find_all("p")
-                if p.text.strip() != "" and "▪" not in p.text
-            ]
-            detailed_news =  udn_crawler.validate_and_parse(news.url)
-            result = openai_client.generate_summary(" ".join(detailed_news["content"]))
-            detailed_news = NewsWithSummary(
-                url=detailed_news.url,
-                title=detailed_news.title,
-                time=detailed_news.time,
-                content=detailed_news.content,
-                summary=result["影響"],
-                reason=result["原因"],
-            )
-            add_new(detailed_news)
 
 def fetch_news_data():
-    response = requests.get("https://newsapi.org/v2/everything?q=price&apiKey=your_api_key")
-    return response.json()
+    try:
+        # 發送 HTTP 請求
+        response = requests.get("https://newsapi.org/v2/everything?q=price&apiKey=your_api_key")
+        
+        # 檢查是否成功獲取數據
+        response.raise_for_status()  # 如果響應狀態碼是 4xx 或 5xx，會觸發異常
+        
+        return response.json()
+    
+    except requests.exceptions.RequestException as e:
+        logger.error("Error fetching news data: %s", str(e), exc_info=True)
+        capture_message('Error occurred while fetching news data')
+        capture_exception(e)
+        return None 
 
 def news_exists(id2, db: Session):
     return db.query(NewsArticle).filter_by(id=id2).first() is not None
